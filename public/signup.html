@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Housync Signup</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="signup-container">
+        <h2>Convenience Store Online Ordering System Signup</h2>
+        <form id="signup-form">
+            <div class="form-group">
+                <label for="first-name">First Name</label>
+                <input type="text" id="first-name" name="first-name" required>
+            </div>
+            <div class="form-group">
+                <label for="last-name">Last Name</label>
+                <input type="text" id="last-name" name="last-name" required>
+            </div>
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" required>
+                <div id="email-error" class="error-message"></div>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required>
+                <div id="password-error" class="error-message"></div>
+            </div>
+            <div class="form-group">
+                <label for="user-type">User Type</label>
+                <select id="user-type" name="user-type" required>
+                    <option value="Vendor">Vendor</option>
+                    <option value="Customer">Customer</option>
+                </select>
+            </div>
+            <button type="submit" id="submit-btn">Sign Up</button>
+            <div id="message"></div>
+        </form>
+        <div class="form-footer">
+            <p>Already have an account?</p>
+            <button id="login-btn" onclick="navigateToLogin()">Login</button>
+        </div>
+    </div>
+    <script>
+        function navigateToLogin() {
+            window.location.href = 'login.html';
+        }
+
+        document.getElementById('signup-form').addEventListener('submit', async function (event) {
+            event.preventDefault();
+
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const firstName = document.getElementById('first-name').value;
+            const lastName = document.getElementById('last-name').value;
+            const userType = document.getElementById('user-type').value;
+
+            const emailError = document.getElementById('email-error');
+            const passwordError = document.getElementById('password-error');
+
+            let isValid = true;
+
+            // Email validation
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                emailError.textContent = 'Invalid email format.';
+                isValid = false;
+            } else {
+                emailError.textContent = '';
+            }
+
+            // Password validation
+            const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[@$&]).{8,}$/;
+            if (!passwordRegex.test(password)) {
+                passwordError.textContent = 'Password must be at least 8 characters, include a capital letter, a number, and a special character (@, $, &).';
+                isValid = false;
+            } else {
+                passwordError.textContent = '';
+            }
+
+            if (!isValid) return;
+
+            const formData = { firstName, lastName, email, password, userType };
+
+            try {
+                const response = await fetch('http://localhost:5000/signup', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData),
+                });
+
+                const result = await response.json();
+
+                if (response.status === 201) {
+                    document.getElementById('message').textContent = 'User registered successfully!';
+                    document.getElementById('message').style.color = 'green';
+                } else {
+                    document.getElementById('message').textContent = result.message || 'Error signing up';
+                    document.getElementById('message').style.color = 'red';
+                }
+            } catch (error) {
+                document.getElementById('message').textContent = 'Error connecting to the server';
+                document.getElementById('message').style.color = 'red';
+            }
+        });
+    </script>
+</body>
+</html>
