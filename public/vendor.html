@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vendor Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <h2>Inventory</h2>
+    <table id="inventory-table" border="1">
+        <thead>
+            <tr>
+                <th>Item ID</th>
+                <th>Item Name</th>
+                <th>Stock</th>
+                <th>Price</th>
+                <th>Cost</th>
+                <th>Type</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <h3>Restock Item</h3>
+    <select id="item-dropdown"></select>
+    <input type="number" id="restock-quantity" placeholder="Quantity" min="1">
+    <button onclick="restockItem()">Restock</button>
+
+    <h3>Sales Distribution</h3>
+    <canvas id="salesChart" width="400" height="400"></canvas>
+
+    <script>
+        async function loadInventory() {
+            try {
+                const response = await fetch('http://localhost:3000/inventory');
+                const inventory = await response.json();
+                const tableBody = document.getElementById('inventory-table').querySelector('tbody');
+                const itemDropdown = document.getElementById('item-dropdown');
+
+                tableBody.innerHTML = '';
+                itemDropdown.innerHTML = '';
+
+                inventory.forEach(item => {
+                    // Populate table
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${item.itemid}</td>
+                        <td>${item.itemName}</td>
+                        <td>${item.stock}</td>
+                        <td>${item.price}</td>
+                        <td>${item.cost}</td>
+                        <td>${item.item_type}</td>`;
+                    tableBody.appendChild(row);
+
+                    // Populate dropdown
+                    const option = document.createElement('option');
+                    option.value = item.itemName;
+                    option.textContent = item.itemName;
+                    itemDropdown.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error loading inventory:', error);
+            }
+        }
+
+        async function restockItem() {
+            const itemName = document.getElementById('item-dropdown').value;
+            const quantity = parseInt(document.getElementById('restock-quantity').value);
+
+            try {
+                const response = await fetch(`http://localhost:3000/restock`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ itemName, quantity })
+                });
+
+                if (response.ok) {
+                    alert('Item restocked successfully!');
+                    loadInventory(); // Refresh the table
+                } else {
+                    alert('Error restocking item');
+                }
+            } catch (error) {
+                console.error('Error during restocking:', error);
+            }
+        }
+
+        async function loadSalesData() {
+            try {
+                const response = await fetch('http://localhost:3000/sales-data');
+                const salesData = await response.json();
+
+                const labels = salesData.map(item => item.itemName);
+                const data = salesData.map(item => item.totalSales);
+
+                new Chart(document.getElementById('salesChart'), {
+                    type: 'pie',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            data: data,
+                            backgroundColor: ['red', 'orange', 'yellow', 'green', 'blue', 'purple']
+                        }]
+                    },
+                    options: {
+                        title: { display: true, text: 'Sales Distribution by Item Name' }
+                    }
+                });
+            } catch (error) {
+                console.error('Error loading sales data:', error);
+            }
+        }
+
+        window.onload = () => {
+            loadInventory();
+            loadSalesData();
+        };
+    </script>
+</body>
+</html>

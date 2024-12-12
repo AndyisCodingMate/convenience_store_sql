@@ -72,9 +72,9 @@
             }
 
             // Password validation
-            const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[@$&]).{8,}$/;
+            const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[@$&!#]).{8,}$/;
             if (!passwordRegex.test(password)) {
-                passwordError.textContent = 'Password must be at least 8 characters, include a capital letter, a number, and a special character (@, $, &).';
+                passwordError.textContent = 'Password must be at least 8 characters, include a capital letter, a number, and a special character (@, $, &, !, #).';
                 isValid = false;
             } else {
                 passwordError.textContent = '';
@@ -85,7 +85,7 @@
             const formData = { firstName, lastName, email, password, userType };
 
             try {
-                const response = await fetch('http://localhost:5000/signup', {
+                const response = await fetch('http://localhost:3000/signup', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

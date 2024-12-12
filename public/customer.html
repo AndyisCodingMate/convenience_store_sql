@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Purchase</title>
+</head>
+
+<body>
+    <h2>Purchase Items</h2>
+    <form id="purchase-form">
+        <label for="item-name">Item Name:</label>
+        <select id="item-name" required></select><br><br>
+
+        <label for="quantity">Quantity:</label>
+        <input type="number" id="quantity" required min="1"><br><br>
+
+        <button type="submit">Checkout</button>
+    </form>
+    <div id="message"></div>
+
+    <script>
+        // Fetch inventory items and populate the dropdown
+        async function loadInventoryItems() {
+            try {
+                const response = await fetch('http://localhost:3000/inventory-items');
+                const items = await response.json();
+                const itemNameSelect = document.getElementById('item-name');
+
+                // Populate the dropdown with inventory items
+                items.forEach(item => {
+                    const option = document.createElement('option');
+                    option.value = item.itemName;
+                    option.textContent = item.itemName;
+                    itemNameSelect.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error loading inventory items:', error);
+            }
+        }
+
+        document.getElementById('purchase-form').addEventListener('submit', async function (event) {
+            event.preventDefault();
+
+            const itemName = document.getElementById('item-name').value;
+            const quantity = document.getElementById('quantity').value;
+
+            try {
+                const response = await fetch('http://localhost:3000/purchase', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ itemName, quantity })
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    document.getElementById('message').textContent = `Purchase successful! Total cost: $${result.total}`;
+                    document.getElementById('message').style.color = 'green';
+                } else {
+                    document.getElementById('message').textContent = result.message || 'Error processing purchase';
+                    document.getElementById('message').style.color = 'red';
+                }
+            } catch (error) {
+                console.error('Error during purchase:', error);
+                document.getElementById('message').textContent = 'Error connecting to server';
+                document.getElementById('message').style.color = 'red';
+            }
+        });
+
+        // Load inventory items when the page loads
+        window.onload = loadInventoryItems;
+    </script>
+</body>
+
+</html>
