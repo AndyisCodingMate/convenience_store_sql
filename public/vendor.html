@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Vendor Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
+
 <body>
     <h2>Inventory</h2>
     <table id="inventory-table" border="1">
@@ -27,7 +29,7 @@
     <input type="number" id="restock-quantity" placeholder="Quantity" min="1">
     <button onclick="restockItem()">Restock</button>
 
-    <h3>Sales Distribution</h3>
+    <h3>Top 10 Selling Items</h3>
     <canvas id="salesChart" width="400" height="400"></canvas>
 
     <script>
@@ -68,54 +70,114 @@
             const itemName = document.getElementById('item-dropdown').value;
             const quantity = parseInt(document.getElementById('restock-quantity').value);
 
+            if (!itemName || !quantity || quantity <= 0) {
+                alert('Please select an item and enter a valid quantity.');
+                return;
+            }
+
             try {
-                const response = await fetch(`http://localhost:3000/restock`, {
+                const response = await fetch('http://localhost:3000/restock', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ itemName, quantity })
                 });
 
+                const result = await response.json();
+
                 if (response.ok) {
-                    alert('Item restocked successfully!');
-                    loadInventory(); // Refresh the table
+                    alert(result.message);
+                    loadInventory(); // Refresh inventory table
                 } else {
-                    alert('Error restocking item');
+                    alert(result.message || 'Error restocking item');
                 }
             } catch (error) {
-                console.error('Error during restocking:', error);
+                console.error('Error during restocking:', error.message);
             }
         }
+
 
         async function loadSalesData() {
             try {
                 const response = await fetch('http://localhost:3000/sales-data');
+                if (!response.ok) throw new Error('Failed to fetch sales data');
+
                 const salesData = await response.json();
+                console.log('Sales data:', salesData); // Log the fetched data
 
                 const labels = salesData.map(item => item.itemName);
                 const data = salesData.map(item => item.totalSales);
 
-                new Chart(document.getElementById('salesChart'), {
-                    type: 'pie',
+                // Check if a chart instance already exists and destroy it
+                if (window.salesChart instanceof Chart) {
+                    window.salesChart.destroy();
+                }
+
+                // Initialize Chart.js for a bar chart
+                const ctx = document.getElementById('salesChart').getContext('2d');
+                window.salesChart = new Chart(ctx, {
+                    type: 'bar',
                     data: {
-                        labels: labels,
+                        labels,
                         datasets: [{
-                            data: data,
-                            backgroundColor: ['red', 'orange', 'yellow', 'green', 'blue', 'purple']
+                            label: 'Total Sales ($)',
+                            data,
+                            backgroundColor: [
+                                'rgba(255, 99, 132, 0.6)',
+                                'rgba(54, 162, 235, 0.6)',
+                                'rgba(255, 206, 86, 0.6)',
+                                'rgba(75, 192, 192, 0.6)',
+                                'rgba(153, 102, 255, 0.6)',
+                                'rgba(255, 159, 64, 0.6)',
+                                'rgba(199, 199, 199, 0.6)',
+                                'rgba(83, 102, 255, 0.6)',
+                                'rgba(255, 78,132 ,0.6)',
+                                'rgba(54 ,235 ,162 ,0.6)'
+                            ],
+                            borderColor: [
+                                'rgba(255 ,99 ,132 ,1 )',
+                                'rgba(54 ,162 ,235 ,1 )',
+                                'rgba(255 ,206 ,86 ,1 )',
+                                'rgba(75 ,192 ,192 ,1 )',
+                                'rgba(153 ,102 ,255 ,1 )',
+                                'rgba(255 ,159 ,64 ,1 )',
+                                'rgba(199 ,199 ,199 ,1 )',
+                                'rgba(83 ,102 ,255 ,1 )',
+                                'rgba(255 ,78 ,132 ,1 )',
+                                'rgba(54 ,235 ,162 ,1 )'
+                            ],
+                            borderWidth: 1
                         }]
                     },
                     options: {
-                        title: { display: true, text: 'Sales Distribution by Item Name' }
+                        responsive: true,
+                        plugins: {
+                            legend: { display: true },
+                            title: { display: true, text: 'Top 10 Items by Total Sales' }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: { display: true }
+                            },
+                            x: {
+                                title: { display: true }
+                            }
+                        }
                     }
                 });
             } catch (error) {
-                console.error('Error loading sales data:', error);
+                console.error('Error loading sales data:', error.message);
             }
         }
 
+
         window.onload = () => {
+            console.log('Page loaded, calling loadInventory and loadSalesData...');
             loadInventory();
             loadSalesData();
         };
+
     </script>
 </body>
+
 </html>

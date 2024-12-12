@@ -1,0 +1,20 @@
+-- Insert Vendors
+INSERT INTO users (first_name, last_name, email, password, user_type) VALUES ('Alice', 'Smith', 'alice.smith@vendor.com', 'password123', 'vendor');
+INSERT INTO users (first_name, last_name, email, password, user_type) VALUES ('Bob', 'Johnson', 'bob.johnson@vendor.com', 'password123', 'vendor');
+INSERT INTO users (first_name, last_name, email, password, user_type) VALUES ('Charlie', 'Brown', 'charlie.brown@vendor.com', 'password123', 'vendor');
+
+-- Insert Customers
+INSERT INTO users (first_name, last_name, email, password, user_type) VALUES ('David', 'Williams', 'david.williams@customer.com', 'password123', 'buyer');
+INSERT INTO users (first_name, last_name, email, password, user_type) VALUES ('Emma', 'Jones', 'emma.jones@customer.com', 'password123', 'buyer');
+INSERT INTO users (first_name, last_name, email, password, user_type) VALUES ('Fiona', 'Taylor', 'fiona.taylor@customer.com', 'password123', 'buyer');
+INSERT INTO users (first_name, last_name, email, password, user_type) VALUES ('George', 'Anderson', 'george.anderson@customer.com', 'password123', 'buyer');
+INSERT INTO users (first_name, last_name, email, password, user_type) VALUES ('Hannah', 'Thomas', 'hannah.thomas@customer.com', 'password123', 'buyer');
+INSERT INTO users (first_name, last_name, email, password, user_type) VALUES ('Isla', 'Moore', 'isla.moore@customer.com', 'password123', 'buyer');
+INSERT INTO users (first_name, last_name, email, password, user_type) VALUES ('Jack', 'Martin', 'jack.martin@customer.com', 'password123', 'buyer');
+INSERT INTO users (first_name, last_name, email, password, user_type) VALUES ('Katherine', 'Lee', 'katherine.lee@customer.com', 'password123', 'buyer');
+INSERT INTO users (first_name, last_name, email, password, user_type) VALUES ('Liam', 'Perez', 'liam.perez@customer.com', 'password123', 'buyer');
+INSERT INTO users (first_name, last_name, email, password, user_type) VALUES ('Mia', 'Clarkson', 'mia.clarkson@customer.com', 'password123', 'buyer');
+INSERT INTO users (first_name, last_name, email, password, user_type) VALUES ('Nathaniel', 'Walker', 'nathaniel.walker@customer.com', 'password123','buyer');
+INSERT INTO users (first_name ,last_name, email, password, user_type) VALUES('Olivia' ,'Hall' ,'olivia.hall@example' ,'password123','buyer') ;
+INSERT INTO users (first_name, last_name, email, password, user_type) VALUES ('Felicity', 'Smoak', 'felicity.smoak@customer.com', 'password123', 'buyer');
+INSERT INTO users (first_name, last_name, email, password, user_type) VALUES ('Gordon', 'Freeman', 'gordon.freeman@customer.com', 'password123', 'buyer');

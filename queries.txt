@@ -1,0 +1,114 @@
+Required queries:
+
+1) Sales for November 2024, November 2023, and October 2024
+
+SELECT 'Nov 2024' AS period, SUM(total_cost) AS total_sales
+FROM transactions
+WHERE YEAR(datetime) = 2024 AND MONTH(datetime) = 11
+UNION ALL
+SELECT 'Nov 2023', SUM(total_cost)
+FROM transactions
+WHERE YEAR(datetime) = 2023 AND MONTH(datetime) = 11
+UNION ALL
+SELECT 'Oct 2024', SUM(total_cost)
+FROM transactions
+WHERE YEAR(datetime) = 2024 AND MONTH(datetime) = 10;
+
+
+2) Best Seller and Worst Seller
+
+-- best seller
+SELECT itemid, SUM(quantity) AS total_quantity
+FROM transactions
+GROUP BY itemid
+ORDER BY total_quantity DESC
+LIMIT 1
+
+UNION ALL
+
+-- worst seller
+SELECT itemid, SUM(quantity)
+FROM transactions
+GROUP BY itemid
+ORDER BY total_quantity ASC
+LIMIT 1;
+
+
+
+3) Most Profitable and Least Profitable Item
+
+-- most profitable
+SELECT itemid, (SUM((price - cost) * quantity)) AS profit
+FROM transactions
+JOIN inventory ON transactions.itemid = inventory.itemid
+GROUP BY itemid
+ORDER BY profit DESC
+LIMIT 1
+
+UNION ALL
+
+-- least profitable
+SELECT itemid, (SUM((price - cost) * quantity))
+FROM transactions
+JOIN inventory ON transactions.itemid = inventory.itemid
+GROUP BY itemid
+ORDER BY profit ASC
+LIMIT 1;
+
+4) Find High-Volume Items (More Than 3 Per Transaction in the Past Month)
+
+SELECT itemid, AVG(quantity) AS avg_quantity_per_transaction
+FROM transactions
+WHERE datetime >= DATE_SUB(CURDATE(), INTERVAL 1 MONTH)
+GROUP BY itemid
+HAVING avg_quantity_per_transaction > 3;
+
+5) Unsold Items in the Past 3 Months for Sale
+
+SELECT inventory.itemid, inventory.itemName
+FROM inventory
+LEFT JOIN transactions ON inventory.itemid = transactions.itemid AND transactions.datetime >= DATE_SUB(CURDATE(), INTERVAL 3 MONTH)
+WHERE transactions.itemid IS NULL;
+
+Queries we have created:
+
+6) Average Yearly Sales Growth
+
+SELECT itemid, 
+       ROUND((SUM(total_cost) / COUNT(DISTINCT YEAR(datetime))) - (MIN(total_cost) / COUNT(DISTINCT YEAR(datetime))), 2) AS avg_yearly_growth
+FROM transactions
+GROUP BY itemid;
+
+7) Inventory Turnover Ratio
+
+SELECT itemid, 
+       SUM(quantity) / (AVG(stock) + 1) AS turnover_ratio -- +1 to avoid division by zero
+FROM transactions
+JOIN inventory ON transactions.itemid = inventory.itemid
+GROUP BY itemid;
+
+8) Seasonal Sales Patterns
+
+SELECT itemid, 
+       SUM(CASE WHEN QUARTER(datetime) = 1 THEN quantity ELSE 0 END) AS Q1_sales,
+       SUM(CASE WHEN QUARTER(datetime) = 2 THEN quantity ELSE 0 END) AS Q2_sales,
+       SUM(CASE WHEN QUARTER(datetime) = 3 THEN quantity ELSE 0 END) AS Q3_sales,
+       SUM(CASE WHEN QUARTER(datetime) = 4 THEN quantity ELSE 0 END) AS Q4_sales
+FROM transactions
+GROUP BY itemid;
+
+9) Average Transaction Size
+
+SELECT buyerID, 
+       AVG(total_cost) AS avg_transaction_size
+FROM transactions
+GROUP BY buyerID;
+
+10) Top 5 Items by Revenue in the Last Month
+
+SELECT itemid, SUM(total_cost) AS total_revenue
+FROM transactions
+WHERE datetime >= DATE_SUB(CURDATE(), INTERVAL 1 MONTH)
+GROUP BY itemid
+ORDER BY total_revenue DESC
+LIMIT 5;
