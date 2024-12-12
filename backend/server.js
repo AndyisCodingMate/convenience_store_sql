@@ -119,11 +119,11 @@ app.post('/purchase', (req, res) => {
     if (!req.session.userId) {
         return res.status(401).send('Unauthorized: Please log in first.');
     }
-    
+
     const { itemName, quantity } = req.body;
     const buyerID = req.session.userId; // Get buyerID from session
 
-    // Check stock availability
+    // Check stock availability and get itemID
     const checkStockQuery = 'SELECT * FROM inventory WHERE itemName = ?';
     db.query(checkStockQuery, [itemName], (err, results) => {
         if (err) {
@@ -136,6 +136,7 @@ app.post('/purchase', (req, res) => {
 
         const itemID = results[0].itemid;
         const price = results[0].price;
+        const totalCost = price * quantity; // Calculate total cost
 
         // Deduct stock and record transaction
         const updateStockQuery = 'UPDATE inventory SET stock = stock - ? WHERE itemid = ?';
@@ -146,19 +147,20 @@ app.post('/purchase', (req, res) => {
             }
 
             const recordTransactionQuery = `
-                INSERT INTO transactions (buyerID, quantity, datetime)
-                VALUES (?, ?, NOW())
+                INSERT INTO transactions (buyerID, itemid, quantity, total_cost, datetime)
+                VALUES (?, ?, ?, ?, NOW())
             `;
-            db.query(recordTransactionQuery, [buyerID, quantity], (err) => {
+            db.query(recordTransactionQuery, [buyerID, itemID, quantity, totalCost], (err) => {
                 if (err) {
                     console.error('Database error:', err);
                     return res.status(500).send('Database error');
                 }
-                res.status(200).json({ message: 'Purchase successful', total: price * quantity });
+                res.status(200).json({ message: 'Purchase successful', total: totalCost });
             });
         });
     });
 });
+
 
 // Route to get all inventory items
 app.get('/inventory-items', (req, res) => {
@@ -182,22 +184,46 @@ app.get('/inventory', (req, res) => {
     });
 });
 
-// Fetch sales data for pie chart
+// Fetch sales data for bar chart
 app.get('/sales-data', (req, res) => {
     const query = `
-        SELECT itemName, SUM(quantity) as totalSales 
-        FROM transactions 
-        JOIN inventory ON transactions.itemID = inventory.itemid 
-        GROUP BY itemName
+        SELECT inventory.itemName, SUM(transactions.total_cost) AS totalSales
+        FROM transactions
+        JOIN inventory ON transactions.itemid = inventory.itemid
+        GROUP BY inventory.itemName
+        ORDER BY totalSales DESC
+        LIMIT 10;
     `;
     db.query(query, (err, results) => {
         if (err) {
+            console.error('Database error:', err);
             return res.status(500).send('Database error');
         }
         res.status(200).json(results);
     });
 });
 
+app.post('/restock', (req, res) => {
+    const { itemName, quantity } = req.body;
+
+    if (!itemName || !quantity || quantity <= 0) {
+        return res.status(400).json({ message: 'Invalid input' });
+    }
+
+    const query = 'UPDATE inventory SET stock = stock + ? WHERE itemName = ?';
+    db.query(query, [quantity, itemName], (err, result) => {
+        if (err) {
+            console.error('Database error:', err);
+            return res.status(500).json({ message: 'Database error' });
+        }
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: 'Item not found' });
+        }
+
+        res.status(200).json({ message: 'Item restocked successfully' });
+    });
+});
 
 // Start the server on port 3000
 const PORT = 3000;
