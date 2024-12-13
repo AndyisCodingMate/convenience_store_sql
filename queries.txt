@@ -17,16 +17,13 @@ WHERE YEAR(datetime) = 2024 AND MONTH(datetime) = 10;
 
 2) Best Seller and Worst Seller
 
--- best seller
+
 SELECT itemid, SUM(quantity) AS total_quantity
 FROM transactions
 GROUP BY itemid
 ORDER BY total_quantity DESC
 LIMIT 1
-
 UNION ALL
-
--- worst seller
 SELECT itemid, SUM(quantity)
 FROM transactions
 GROUP BY itemid
@@ -37,17 +34,13 @@ LIMIT 1;
 
 3) Most Profitable and Least Profitable Item
 
--- most profitable
 SELECT itemid, (SUM((price - cost) * quantity)) AS profit
 FROM transactions
 JOIN inventory ON transactions.itemid = inventory.itemid
 GROUP BY itemid
 ORDER BY profit DESC
 LIMIT 1
-
 UNION ALL
-
--- least profitable
 SELECT itemid, (SUM((price - cost) * quantity))
 FROM transactions
 JOIN inventory ON transactions.itemid = inventory.itemid
